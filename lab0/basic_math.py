@@ -4,7 +4,8 @@ import scipy as sc
 
 def matrix_multiplication(a, b):
     if len(a[0]) != len(b):
-        raise ValueError
+        raise ValueError("Incompatible matrix dimensions for multiplication")
+    
     result = []
     for i in range(len(a)):
         row = []
@@ -16,49 +17,58 @@ def matrix_multiplication(a, b):
         result.append(row)
     return result
 
+
 def functions(a, b):
     c1 = list(map(float, a.split()))
     c2 = list(map(float, b.split()))
+
     if c1 == c2:
         return None
-    common = []
-    for coeffs in [c1, c2]:
-        a, b, c = coeffs
-        discriminant = b**2 - 4 * a * c
-        if discriminant == 0:
-            root = -b / (2 * a)
-            common.append((root, a * root**2 + b * root + c))
-        elif discriminant > 0:
-            root1 = (-b + discriminant**0.5) / (2 * a)
-            root2 = (-b - discriminant**0.5) / (2 * a)
-            common.append((root1, a * root1**2 + b * root1 + c))
-            common.append((root2, a * root2**2 + b * root2 + c))
-    return common
+
+    A = c1[0] - c2[0]
+    B = c1[1] - c2[1]
+    C = c1[2] - c2[2]
+    if abs(A) < 1e-14:
+        if abs(B) < 1e-14:
+            return []
+        else:
+            x0 = -C / B
+            y0 = c1[0] * x0**2 + c1[1] * x0 + c1[2]
+            return [(x0, y0)]
+
+    disc = B**2 - 4*A*C
+    if disc < 0:
+        return []
+    elif abs(disc) < 1e-14:
+        x0 = -B / (2*A)
+        y0 = c1[0] * x0**2 + c1[1] * x0 + c1[2]
+        return [(x0, y0)]
+    else:
+        sqrt_disc = disc**0.5
+        x1 = (-B + sqrt_disc) / (2*A)
+        x2 = (-B - sqrt_disc) / (2*A)
+        y1 = c1[0] * x1**2 + c1[1] * x1 + c1[2]
+        y2 = c1[0] * x2**2 + c1[1] * x2 + c1[2]
+
+        if x1 < x2:
+            return [(x1, y1), (x2, y2)]
+        else:
+            return [(x2, y2), (x1, y1)]
+
 
 def skew(x):
     n = len(x)
     mean_x = sum(x) / n
-    m3 = 0
-    for xi in x:
-        m3 += (xi - mean_x)**3
-    m3 /= n
-    m2 = 0
-    for xi in x:
-        m2 += (xi - mean_x)**2
-    m2 /= n
+    m3 = sum((xi - mean_x)**3 for xi in x) / n
+    m2 = sum((xi - mean_x)**2 for xi in x) / n
     sigma = m2**0.5
-    return round(m3 / sigma**3, 2)
+    return round(m3 / (sigma**3), 2)
+
 
 def kurtosis(x):
     n = len(x)
     mean_x = sum(x) / n
-    m4 = 0
-    for xi in x:
-        m4 += (xi - mean_x)**4
-    m4 /= n
-    m2 = 0
-    for xi in x:
-        m2 += (xi - mean_x)**2
-    m2 /= n
+    m4 = sum((xi - mean_x)**4 for xi in x) / n
+    m2 = sum((xi - mean_x)**2 for xi in x) / n
     sigma = m2**0.5
-    return round(m4 / sigma**4 - 3, 2)
+    return round(m4 / (sigma**4) - 3, 2)
